@@ -506,109 +506,12 @@ export default function AudioToSign() {
             Back to Home
           </button>
           
-          <h1 className="title">Audio to Sign Language Converter</h1>
+          <h1 className="title">Audio to Sign Language Interpreter</h1>
         </div>
       </header>
       
       <div className="main-content">
-        {/* Left column - Audio Recording */}
-        <div className="text-section">
-          <div className="text-panel">
-            <h2 className="panel-title">
-              <Volume2 size={20} />
-              Audio to Sign
-            </h2>
-            
-            {/* Recording Controls */}
-            <div className="recording-controls">
-              <div className="control-buttons">
-                {!isRecording ? (
-                  <button
-                    onClick={startRecording}
-                    className="control-button success"
-                    disabled={isProcessing}
-                  >
-                    <Mic size={20} />
-                    Start Recording
-                  </button>
-                ) : (
-                  <button
-                    onClick={stopRecording}
-                    className="control-button danger recording-active"
-                  >
-                    <MicOff size={20} />
-                    Stop Recording
-                  </button>
-                )}
-                
-                {recordedText && (
-                  <button
-                    onClick={clearRecording}
-                    className="control-button secondary"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              
-              {/* Recording Status */}
-              {isRecording && (
-                <div className="recording-status">
-                  <div className="recording-info">
-                    <span className="recording-time">Recording... {formatTime(recordingTime)}</span>
-                    <div className="audio-level-container">
-                      <div 
-                        className="audio-level-bar"
-                        style={{ width: `${audioLevel * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  <p className="recording-instruction">Speak clearly into your microphone</p>
-                </div>
-              )}
-              
-              {isProcessing && (
-                <div className="processing-status">
-                  <p className="processing-text">Processing audio...</p>
-                </div>
-              )}
-            </div>
-            
-            {/* Transcribed Text Display */}
-            <div className="text-content">
-              <h3 className="transcription-title">Transcribed Text:</h3>
-              {recordedText ? (
-                <div className="transcribed-content">
-                  {highlightedText.map((word, index) => (
-                    <span 
-                      key={index} 
-                      className={`highlighted-text ${
-                        word.isHighlighted ? 'active' : 'inactive'
-                      }`}
-                    >
-                      {word.text}{' '}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="placeholder-text">
-                  {isRecording ? 'Listening...' : 'Click "Start Recording" to begin recording audio'}
-                </p>
-              )}
-            </div>
-            
-            {/* Browser Support Warning */}
-            {!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) && (
-              <div className="browser-warning">
-                <p className="warning-text">
-                  Speech recognition not supported in this browser. Please use Chrome or Edge for best experience.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Right column - Video player */}
+        {/* Left column - Video player */}
         <div className="video-section">
           <div className="video-panel">
             <div className="video-container">
@@ -710,6 +613,103 @@ export default function AudioToSign() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Right column - Text to Sign */}
+        <div className="text-section">
+          <div className="text-panel">
+            <h2 className="panel-title">
+              <Volume2 size={20} />
+              Audio to Sign
+            </h2>
+            
+            {/* Recording Controls */}
+            <div className="recording-controls">
+              <div className="control-buttons">
+                {!isRecording ? (
+                  <button
+                    onClick={startRecording}
+                    className="control-button success"
+                    disabled={isProcessing}
+                  >
+                    <Mic size={20} />
+                    Start Recording
+                  </button>
+                ) : (
+                  <button
+                    onClick={stopRecording}
+                    className="control-button danger recording-active"
+                  >
+                    <MicOff size={20} />
+                    Stop Recording
+                  </button>
+                )}
+                
+                {recordedText && (
+                  <button
+                    onClick={clearRecording}
+                    className="control-button secondary"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              
+              {/* Recording Status */}
+              {isRecording && (
+                <div className="recording-status">
+                  <div className="recording-info">
+                    <span className="recording-time">Recording... {formatTime(recordingTime)}</span>
+                    <div className="audio-level-container">
+                      <div 
+                        className="audio-level-bar"
+                        style={{ width: `${audioLevel * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                  <p className="recording-instruction">Speak clearly into your microphone</p>
+                </div>
+              )}
+              
+              {isProcessing && (
+                <div className="processing-status">
+                  <p className="processing-text">Processing audio...</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Transcribed Text Display */}
+            <div className="text-content">
+              <h3 className="transcription-title">Transcribed Text:</h3>
+              {recordedText ? (
+                <div className="transcribed-content">
+                  {highlightedText.map((word, index) => (
+                    <span 
+                      key={index} 
+                      className={`highlighted-text ${
+                        word.isHighlighted ? 'active' : 'inactive'
+                      }`}
+                    >
+                      {word.text}{' '}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="placeholder-text">
+                  {isRecording ? 'Listening...' : 'Click "Start Recording" to begin recording audio'}
+                </p>
+              )}
+            </div>
+            
+            {/* Browser Support Warning */}
+            {!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) && (
+              <div className="browser-warning">
+                <p className="warning-text">
+                  Speech recognition not supported in this browser. Please use Chrome or Edge for best experience.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

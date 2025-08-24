@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Hands } from '@mediapipe/hands';
 import { Camera } from '@mediapipe/camera_utils';
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
@@ -6,6 +7,7 @@ import { ArrowLeft, Camera as CameraIcon, Play, Square, BarChart3, Zap } from 'l
 import './SignToSpeech.css';
 
 const SignToSpeech = () => {
+  const navigate = useNavigate();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -336,15 +338,15 @@ const SignToSpeech = () => {
     <div className="sign-to-speech-container">
       <header className="header">
         <div className="header-content">
-          <div className="status-display">
-            <div className={`status-indicator ${isCameraActive ? 'success' : isLoading ? 'loading' : 'error'}`}>
-              <div className="status-dot"></div>
-              <span className="status-text">
-                {isCameraActive ? 'Camera Active' : isLoading ? 'Initializing...' : 'Camera Inactive'}
-              </span>
-            </div>
-          </div>
-          <h1 className="title">Advanced Sign Language Detection</h1>
+          <button 
+            onClick={() => navigate('/')}
+            className="back-button"
+          >
+            <ArrowLeft size={20} />
+            Back to Home
+          </button>
+          
+          <h1 className="title">Sign Language to Speech Interpreter</h1>
         </div>
       </header>
 

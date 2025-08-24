@@ -19,6 +19,7 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  position: relative;
 }
 
 .back-button {
@@ -34,6 +35,7 @@
   transition: all 0.3s ease;
   cursor: pointer;
   font-size: 0.875rem;
+  z-index: 10;
 }
 
 .back-button:hover {
@@ -46,6 +48,13 @@
   font-weight: 700;
   color: white;
   margin: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: auto;
+  white-space: nowrap;
 }
 
 .main-content {
@@ -325,6 +334,7 @@
   flex-direction: column;
   gap: 1.5rem;
   min-width: 0;
+  align-items: center;
 }
 
 .video-panel {
@@ -335,19 +345,19 @@
   display: flex;
   flex-direction: column;
   max-width: 600px;
-  margin: 0 auto;
   width: 100%;
+  align-items: center;
 }
 
 .video-container {
   position: relative;
   width: 100%;
   max-width: 500px;
-  margin: 0 auto;
   border-radius: 0.75rem;
   overflow: hidden;
   background: #000;
   aspect-ratio: 16/9;
+  margin: 0 auto;
 }
 
 .video-player {
@@ -364,6 +374,9 @@
   background: rgba(0, 0, 0, 0.8);
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 500px;
+  align-self: center;
 }
 
 .caption-content {
@@ -419,6 +432,9 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: 100%;
+  max-width: 500px;
+  align-self: center;
 }
 
 .controls-row {
@@ -438,6 +454,7 @@
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .speed-label {
@@ -454,6 +471,7 @@
   display: flex;
   gap: 0.25rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .speed-button {
@@ -486,6 +504,9 @@
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   margin-top: auto;
+  width: 100%;
+  max-width: 500px;
+  align-self: center;
 }
 
 .status-text {
@@ -525,13 +546,27 @@
   .video-section {
     flex: none;
     max-width: 100%;
+    align-items: center;
   }
   
   .video-panel {
     max-width: 100%;
+    align-items: center;
   }
   
   .video-container {
+    max-width: 100%;
+  }
+  
+  .caption-display {
+    max-width: 100%;
+  }
+  
+  .video-controls {
+    max-width: 100%;
+  }
+  
+  .status-bar {
     max-width: 100%;
   }
   
@@ -569,6 +604,7 @@
   
   .video-panel {
     padding: 1rem;
+    align-items: center;
   }
   
   .control-buttons {
@@ -593,6 +629,7 @@
   .speed-controls {
     flex-direction: column;
     gap: 0.5rem;
+    align-items: center;
   }
   
   .speed-buttons {
@@ -621,6 +658,19 @@
   
   .caption-text {
     gap: 0.125rem;
+  }
+  
+  /* Video controls alignment */
+  .video-controls {
+    align-items: center;
+  }
+  
+  .controls-row {
+    width: 100%;
+  }
+  
+  .speed-controls {
+    width: 100%;
   }
 }
 
