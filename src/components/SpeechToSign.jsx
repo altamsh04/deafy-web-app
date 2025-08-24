@@ -1,4 +1,4 @@
-import { ChevronRight, FastForward, Pause, Play, Rewind, RotateCcw, Mic, MicOff, Volume2 } from 'lucide-react';
+import { ChevronRight, FastForward, Pause, Play, Rewind, RotateCcw, Mic, MicOff, Volume2, PenTool, ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import './SpeechToSign.css';
 
@@ -11,6 +11,10 @@ export default function AudioToSign() {
   const [highlightedText, setHighlightedText] = useState([]);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  
+  // Input mode states
+  const [inputMode, setInputMode] = useState('mic'); // 'mic' or 'text'
+  const [writtenText, setWrittenText] = useState('');
   
   // Audio recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -81,6 +85,34 @@ export default function AudioToSign() {
     }));
     setHighlightedText(words);
     wordsRef.current = text.split(/\s+/);
+  };
+
+  // Handle input mode toggle
+  const toggleInputMode = (mode) => {
+    setInputMode(mode);
+    // Clear previous inputs when switching modes
+    if (mode === 'mic') {
+      setWrittenText('');
+    } else {
+      setRecordedText('');
+      if (isRecording) {
+        stopRecording();
+      }
+    }
+    setHighlightedText([]);
+    wordsRef.current = [];
+    stopPlayback();
+  };
+
+  // Handle text input for written mode
+  const handleTextInput = (text) => {
+    setWrittenText(text);
+    if (text.trim()) {
+      updateHighlightedText(text.trim());
+    } else {
+      setHighlightedText([]);
+      wordsRef.current = [];
+    }
   };
 
   // Preload common videos
@@ -199,15 +231,20 @@ export default function AudioToSign() {
   };
 
   const clearRecording = () => {
-    setRecordedText('');
+    if (inputMode === 'mic') {
+      setRecordedText('');
+    } else {
+      setWrittenText('');
+    }
     setHighlightedText([]);
     wordsRef.current = [];
     stopPlayback();
   };
 
   const startPlayback = () => {
-    if (!recordedText.trim()) {
-      alert('Please record some audio first!');
+    const currentText = inputMode === 'mic' ? recordedText : writtenText;
+    if (!currentText.trim()) {
+      alert(inputMode === 'mic' ? 'Please record some audio first!' : 'Please enter some text first!');
       return;
     }
     
@@ -502,11 +539,11 @@ export default function AudioToSign() {
             onClick={() => window.history.back()}
             className="back-button"
           >
-            <ChevronRight size={20} />
+            <ArrowLeft size={20} />
             Back to Home
           </button>
           
-          <h1 className="title">Audio to Sign Language Interpreter</h1>
+          {/* <h1 className="title">Audio to Sign Language Interpreter</h1> */}
         </div>
       </header>
       
@@ -606,10 +643,12 @@ export default function AudioToSign() {
               <div className="status-text">
                 {isPlaying ? (
                   isPaused ? "Paused - Click Resume to continue" : "Playing..." 
-                ) : recordedText ? (
+                ) : (inputMode === 'mic' ? recordedText : writtenText) ? (
                   "Ready to start - Click Start to begin"
                 ) : (
-                  "Record some audio first to convert to sign language"
+                  inputMode === 'mic' ? 
+                    "Record some audio first to convert to sign language" :
+                    "Type some text first to convert to sign language"
                 )}
               </div>
             </div>
@@ -619,45 +658,89 @@ export default function AudioToSign() {
         {/* Right column - Text to Sign */}
         <div className="text-section">
           <div className="text-panel">
-            <h2 className="panel-title">
-              <Volume2 size={20} />
-              Audio to Sign
-            </h2>
-            
-            {/* Recording Controls */}
-            <div className="recording-controls">
-              <div className="control-buttons">
-                {!isRecording ? (
-                  <button
-                    onClick={startRecording}
-                    className="control-button success"
-                    disabled={isProcessing}
-                  >
-                    <Mic size={20} />
-                    Start Recording
-                  </button>
-                ) : (
-                  <button
-                    onClick={stopRecording}
-                    className="control-button danger recording-active"
-                  >
-                    <MicOff size={20} />
-                    Stop Recording
-                  </button>
-                )}
-                
-                {recordedText && (
-                  <button
-                    onClick={clearRecording}
-                    className="control-button secondary"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+            <div className="panel-header">
+              <h2 className="panel-title">
+                {inputMode === 'mic' ? <Volume2 size={20} /> : <PenTool size={20} />}
+                {inputMode === 'mic' ? 'Audio to Sign' : 'Text to Sign'}
+              </h2>
               
-              {/* Recording Status */}
-              {isRecording && (
+              {/* Input Mode Toggle */}
+              <div className="input-mode-toggle">
+                <button
+                  onClick={() => toggleInputMode('mic')}
+                  className={`mode-button ${inputMode === 'mic' ? 'active' : 'inactive'}`}
+                  title="Voice Input"
+                >
+                  <Mic size={18} />
+                  Mic
+                </button>
+                <button
+                  onClick={() => toggleInputMode('text')}
+                  className={`mode-button ${inputMode === 'text' ? 'active' : 'inactive'}`}
+                  title="Text Input"
+                >
+                  <PenTool size={18} />
+                  Write
+                </button>
+              </div>
+            </div>
+            
+            {/* Recording/Text Input Controls */}
+            <div className="recording-controls">
+              {inputMode === 'mic' ? (
+                <div className="control-buttons">
+                  {!isRecording ? (
+                    <button
+                      onClick={startRecording}
+                      className="control-button success"
+                      disabled={isProcessing}
+                    >
+                      <Mic size={20} />
+                      Start Recording
+                    </button>
+                  ) : (
+                    <button
+                      onClick={stopRecording}
+                      className="control-button danger recording-active"
+                    >
+                      <MicOff size={20} />
+                      Stop Recording
+                    </button>
+                  )}
+                  
+                  {recordedText && (
+                    <button
+                      onClick={clearRecording}
+                      className="control-button secondary"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="text-input-section">
+                  <div className="text-input-controls">
+                    <textarea
+                      value={writtenText}
+                      onChange={(e) => handleTextInput(e.target.value)}
+                      placeholder="Type your text here... (e.g., Hello world, how are you?)"
+                      className="text-input-area"
+                      rows={4}
+                    />
+                    {writtenText && (
+                      <button
+                        onClick={clearRecording}
+                        className="control-button secondary clear-text-btn"
+                      >
+                        Clear Text
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Recording Status - Only show for mic mode */}
+              {inputMode === 'mic' && isRecording && (
                 <div className="recording-status">
                   <div className="recording-info">
                     <span className="recording-time">Recording... {formatTime(recordingTime)}</span>
@@ -672,38 +755,40 @@ export default function AudioToSign() {
                 </div>
               )}
               
-              {isProcessing && (
+              {inputMode === 'mic' && isProcessing && (
                 <div className="processing-status">
                   <p className="processing-text">Processing audio...</p>
                 </div>
               )}
             </div>
             
-            {/* Transcribed Text Display */}
-            <div className="text-content">
-              <h3 className="transcription-title">Transcribed Text:</h3>
-              {recordedText ? (
-                <div className="transcribed-content">
-                  {highlightedText.map((word, index) => (
-                    <span 
-                      key={index} 
-                      className={`highlighted-text ${
-                        word.isHighlighted ? 'active' : 'inactive'
-                      }`}
-                    >
-                      {word.text}{' '}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="placeholder-text">
-                  {isRecording ? 'Listening...' : 'Click "Start Recording" to begin recording audio'}
-                </p>
-              )}
-            </div>
+            {/* Text Display - Only show for Mic mode */}
+            {inputMode === 'mic' && (
+              <div className="text-content">
+                <h3 className="transcription-title">Transcribed Text:</h3>
+                {recordedText ? (
+                  <div className="transcribed-content">
+                    {highlightedText.map((word, index) => (
+                      <span 
+                        key={index} 
+                        className={`highlighted-text ${
+                          word.isHighlighted ? 'active' : 'inactive'
+                        }`}
+                      >
+                        {word.text}{' '}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="placeholder-text">
+                    {isRecording ? 'Listening...' : 'Click "Start Recording" to begin recording audio'}
+                  </p>
+                )}
+              </div>
+            )}
             
-            {/* Browser Support Warning */}
-            {!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) && (
+            {/* Browser Support Warning - Only show for mic mode */}
+            {inputMode === 'mic' && !('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) && (
               <div className="browser-warning">
                 <p className="warning-text">
                   Speech recognition not supported in this browser. Please use Chrome or Edge for best experience.

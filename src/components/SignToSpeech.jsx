@@ -346,7 +346,7 @@ const SignToSpeech = () => {
             Back to Home
           </button>
           
-          <h1 className="title">Sign Language to Speech Interpreter</h1>
+          {/* <h1 className="title">Sign Language to Speech Interpreter</h1> */}
         </div>
       </header>
 
