@@ -4,10 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Deafy - Advanced Sign Language Detection</title>
+    <title>Deafy - Advanced Sign Language Interpreter</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466124/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.js" crossorigin="anonymous"></script>
+    
+    <!-- Fallback MediaPipe loading -->
+    <script>
+      window.addEventListener('load', function() {
+        console.log('Page loaded, checking MediaPipe availability...');
+        console.log('window.Hands:', typeof window.Hands);
+        console.log('window.Camera:', typeof window.Camera);
+        console.log('window.drawConnectors:', typeof window.drawConnectors);
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

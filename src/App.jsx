@@ -1,17 +1,22 @@
-import SignLanguageDetector from './components/SignLanguageDetector'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './App.css';
+import LandingPage from './components/LandingPage';
+import SignToSpeech from './components/SignToSpeech';
+import SpeechToSign from './components/SpeechToSign';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Deafy - Sign Language Detection</h1>
-      </header>
-      <main>
-        <SignLanguageDetector />
-      </main>
-    </div>
-  )
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<LandingPage />}  />
+          <Route path="/signtospeech" element={<SignToSpeech />} />
+          <Route path="/speechtosign" element={<SpeechToSign />} />
+        </Routes>
+      </div>
+    </Router>
+  );
 }
 
 export default App
