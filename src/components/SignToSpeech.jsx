@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Hands } from '@mediapipe/hands';
 import { Camera } from '@mediapipe/camera_utils';
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
-import { ArrowLeft, Camera as CameraIcon, Play, Square, BarChart3, Zap } from 'lucide-react';
+import { ArrowLeft, Camera as CameraIcon, Play, Square, BarChart3, Volume2, VolumeX } from 'lucide-react';
 import './SignToSpeech.css';
 
 const SignToSpeech = () => {
@@ -16,6 +16,16 @@ const SignToSpeech = () => {
   const [currentSign, setCurrentSign] = useState('');
   const [detectionCount, setDetectionCount] = useState(0);
   const [sessionStartTime] = useState(Date.now());
+  const [isTTSEnabled, setIsTTSEnabled] = useState(true);
+  const [lastSpokenSign, setLastSpokenSign] = useState('');
+  const [speechSynthesis, setSpeechSynthesis] = useState(null);
+  const [detectionFrames, setDetectionFrames] = useState({});
+  const [confidenceThreshold] = useState(3);
+  const [stableGesture, setStableGesture] = useState('');
+  const [gestureStartTime, setGestureStartTime] = useState(null);
+  const detectionFramesRef = useRef({});
+  const stableGestureRef = useRef('');
+  const gestureStartTimeRef = useRef(null);
 
   // Define all available signs
   const customSigns = {
@@ -72,6 +82,39 @@ const SignToSpeech = () => {
 
   const allSigns = { ...customSigns, ...alphabetSigns };
 
+  // Text-to-Speech functionality
+  const speakText = (text) => {
+    if (!isTTSEnabled || !speechSynthesis) return;
+    
+    // Cancel any ongoing speech immediately
+    speechSynthesis.cancel();
+    
+    // Create utterance with faster settings for immediate response
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.2; // Faster speech rate
+    utterance.pitch = 1.1; // Slightly higher pitch for clarity
+    utterance.volume = 0.9; // Higher volume
+    
+    // Get voices and select the best one
+    const voices = speechSynthesis.getVoices();
+    const englishVoice = voices.find(voice => 
+      voice.lang.startsWith('en') && voice.name.includes('Google')
+    ) || voices.find(voice => 
+      voice.lang.startsWith('en') && voice.name.includes('Microsoft')
+    ) || voices.find(voice => voice.lang.startsWith('en'));
+    
+    if (englishVoice) {
+      utterance.voice = englishVoice;
+    }
+    
+    // Speak immediately without delay
+    try {
+      speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.warn('Speech synthesis error:', error);
+    }
+  };
+
   // Initialize MediaPipe Hands
   const hands = new Hands({
     locateFile: (file) => {
@@ -82,8 +125,8 @@ const SignToSpeech = () => {
   hands.setOptions({
     maxNumHands: 2,
     modelComplexity: 1,
-    minDetectionConfidence: 0.7,
-    minTrackingConfidence: 0.5
+    minDetectionConfidence: 0.8,
+    minTrackingConfidence: 0.7
   });
 
   // Get finger states from landmarks
@@ -278,11 +321,67 @@ const SignToSpeech = () => {
     }
 
     setDetectedSigns(detected);
+    
     if (detected.length > 0) {
-      setCurrentSign(detected[0]);
-      setDetectionCount(prev => prev + 1);
+      const newSign = detected[0];
+      setCurrentSign(newSign);
+      
+      // Update detection frames for confidence tracking using refs for immediate access
+      detectionFramesRef.current[newSign] = (detectionFramesRef.current[newSign] || 0) + 1;
+      
+      // Reset other signs' frames
+      Object.keys(detectionFramesRef.current).forEach(sign => {
+        if (sign !== newSign) {
+          detectionFramesRef.current[sign] = 0;
+        }
+      });
+      
+      // Update state for UI display
+      setDetectionFrames({ ...detectionFramesRef.current });
+      
+      // Track stable gesture and timing
+      if (stableGestureRef.current !== newSign) {
+        stableGestureRef.current = newSign;
+        gestureStartTimeRef.current = Date.now();
+        setStableGesture(newSign);
+        setGestureStartTime(Date.now());
+      }
+      
+      // Check if we have enough confidence and stable gesture
+      const currentFrames = detectionFramesRef.current[newSign] || 0;
+      const currentTime = Date.now();
+      const gestureDuration = gestureStartTimeRef.current ? currentTime - gestureStartTimeRef.current : 0;
+      
+      // Only speak if:
+      // 1. We have enough consecutive frames
+      // 2. The gesture has been stable for a minimum duration
+      // 3. It's a different sign from what we last spoke
+      if (currentFrames >= confidenceThreshold && 
+          gestureDuration >= 600 && // 600ms minimum stability (reduced for better responsiveness)
+          newSign !== lastSpokenSign) {
+        console.log(`Speaking: ${newSign} (frames: ${currentFrames}, duration: ${gestureDuration}ms)`);
+        speakText(newSign);
+        setLastSpokenSign(newSign);
+        setDetectionCount(prev => prev + 1);
+        gestureStartTimeRef.current = null;
+        setGestureStartTime(null);
+      } else {
+        // Debug logging
+        if (currentFrames >= confidenceThreshold && gestureDuration >= 600) {
+          console.log(`Would speak ${newSign} but already spoken: ${lastSpokenSign}`);
+        } else {
+          console.log(`Building confidence for ${newSign}: frames=${currentFrames}/${confidenceThreshold}, duration=${gestureDuration}ms/600ms`);
+        }
+      }
     } else {
       setCurrentSign('');
+      stableGestureRef.current = '';
+      gestureStartTimeRef.current = null;
+      setStableGesture('');
+      setGestureStartTime(null);
+      // Reset all detection frames when no sign is detected
+      detectionFramesRef.current = {};
+      setDetectionFrames({});
     }
     canvasCtx.restore();
   };
@@ -322,6 +421,7 @@ const SignToSpeech = () => {
 
   useEffect(() => {
     setIsLoading(false);
+    setSpeechSynthesis(window.speechSynthesis);
     return () => {
       stopCamera();
     };
@@ -377,7 +477,31 @@ const SignToSpeech = () => {
 
           <div className="detection-display">
             {currentSign ? (
-              <div className="detection-text">{currentSign}</div>
+              <div className="detection-content">
+                <div className="detection-text">{currentSign}</div>
+                {detectionFrames[currentSign] && (
+                  <div className="confidence-container">
+                    <div className="confidence-label">Confidence</div>
+                    <div className="confidence-bar">
+                      <div 
+                        className="confidence-fill" 
+                        style={{ width: `${Math.min((detectionFrames[currentSign] / confidenceThreshold) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <div className="stability-indicator">
+                      {gestureStartTime && (Date.now() - gestureStartTime) >= 600 ? (
+                        <span className="ready-to-speak">Ready to Speak!</span>
+                      ) : gestureStartTime ? (
+                        <span className="building-stability">
+                          Hold steady... ({Math.max(0, Math.ceil((600 - (Date.now() - gestureStartTime)) / 100))}s)
+                        </span>
+                      ) : (
+                        <span className="detecting">Detecting...</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="no-detection">No sign detected</div>
             )}
@@ -412,6 +536,7 @@ const SignToSpeech = () => {
             </div>
           </div>
 
+
           <div className="control-panel">
             <div className="panel-title">
               <BarChart3 />
@@ -437,15 +562,6 @@ const SignToSpeech = () => {
             </div>
           </div>
 
-          <div className="info-section">
-            <div className="info-title">Supported Signs</div>
-            <div className="info-text">
-              This detector supports {Object.keys(allSigns).length} different signs including 
-              {customSignsList.length} custom gestures (Peace, OK, Rock, Paper, etc.) and 
-              {alphabetSignsList.length} ASL alphabet letters. Show your hand to the camera 
-              and make any supported sign for real-time detection.
-            </div>
-          </div>
         </div>
       </div>
     </div>
